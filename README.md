@@ -22,7 +22,9 @@ For a fresh Ubuntu 18.04 VM:
 
 1. `python3 -m pip install -r requirements.txt`
 
-1. `screen -r python3 app.py`
+1. `chmod a+x run.sh`
+
+1. `screen -r run.sh`
 
 To update requirements use `python3 -m pip freeze > requirements.txt`.
 
