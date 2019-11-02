@@ -24,7 +24,11 @@ For a fresh Ubuntu 18.04 VM:
 
 1. `chmod a+x run.sh`
 
-1. `screen -r run.sh`
+1. `screen -r ./run.sh`
 
 To update requirements use `python3 -m pip freeze > requirements.txt`.
+
+To redeploy the server use:
+
+1. `./run.sh`
 
