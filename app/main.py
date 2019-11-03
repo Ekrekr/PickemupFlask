@@ -1,5 +1,5 @@
 """
-Flask API Relay
+Blog Server
 
 App for relaying anonymous client requests to a cloud service. More info here:
 https://eliaskassell.com/2019/10/13/microservice-api-relay.html
@@ -94,7 +94,11 @@ def gmapsMatrix():
 
     return jsonify(distanceMatrix)
 
+@app.route('/')
+def info():
+    return (f"<h1>Relay point for <a href='https://eliaskassell.com'>eliaskass"
+            f"ell.com</a>.</h1>")
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', debug=True, port=80)
 

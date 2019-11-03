@@ -4,15 +4,21 @@ Flask server for relaying API requests, for preventing having to share API key c
 
 ## Deployment
 
-For a fresh Ubuntu 18.04 VM:
+For a fresh Ubuntu 18.04 VM. First navigate to parent directory of `.keys` which contains private API keys that are gitignored.
 
-1. `ssh blog-server`
+1. `scp -r .keys azblog:~/.keys`
 
-1. `git clone https://github.com/Ekrekr/BlogServer && cd BlogServer`
+1. `ssh azblog`
 
-1. `sudo apt-get install docker`
+1. `git clone https://github.com/Ekrekr/BlogServer && cd BlogServer && mv .keys BlogServer/app/`
 
-1. `docker build -t blog .`
+1. `screen -r sudo docker-compose up`
 
-1. `docker run -d -p 5000:80 blog`
+1. `ctrl-a` `ctrl-d` to dislocate.
+
+1. `screen -r` to resume.
+
+## Notes
+
+* Docker image from [tiangolo](https://github.com/tiangolo/uwsgi-nginx-flask-docker/tree/master/python3.7).
 
