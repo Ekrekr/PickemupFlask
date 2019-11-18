@@ -14,7 +14,7 @@ Assuming your `~/.ssh/config` has the VM set as `pflask`, then the exact command
 
 1. `sudo apt-get update && sudo apt-get install docker docker-compose`
 
-1. `git clone https://github.com/Ekrekr/PickemupFlask && mv .keys PickemupFlask/app/ && cd PickemupFlask`
+1. `git clone https://github.com/Ekrekr/PickemupFlask && mv .keys PickemupFlask/pickemup/ && cd PickemupFlask`
 
 1. `sudo docker-compose up -d`
 
@@ -36,6 +36,12 @@ To check the server is visible, open the i.p. address of `pflask` in a browser.
 
 1. `sudo docker container rm <id>`
 
+## Running Tests
+
+From the base directory, run `pytest -s`.
+
 ## Notes
 
 * Docker image from [tiangolo](https://github.com/tiangolo/uwsgi-nginx-flask-docker).
+
+* Example [flask project with pytest](https://github.com/aaronjolson/flask-pytest-example/blob/master/tests/test_routes.py).

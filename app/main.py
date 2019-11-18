@@ -1,19 +1,20 @@
 """
-Pickemup Flask
+PickemupFlask - main.
 
-Flask server for a journey planner for passenger pickup, where organizing the
-rides is pre-planned by an orchestrator.
+Entry point and routing for PickemupFlask.
 """
+import os
 import json
 import typing
 import datetime
-import googlemaps
 from flask import Flask, request, jsonify
+
+from . import gmaps
 
 app = Flask(__name__)
 
 
-def readKeys() -> dict:
+def read_keys() -> dict:
     """
     Reads keys from the '.keys' json file.
 
@@ -25,8 +26,10 @@ def readKeys() -> dict:
     Returns:
         keys: Dict of keys, in .keys file.
     """
+    keys_path = os.path.dirname(os.path.abspath(__file__))
+    keys_path = os.path.join(keys_path, ".keys")
     try:
-        with open('.keys') as jsonFile:
+        with open(keys_path) as jsonFile:
             data = json.load(jsonFile)
     except FileNotFoundError:
         print("'.keys' file required but not found, exiting.")
@@ -34,69 +37,42 @@ def readKeys() -> dict:
     return data
 
 
-def splitGeoArg(arg: str) -> typing.List[typing.List[float]]:
+def configure_routes(app, keys):
     """
-    Splits up a geolocation argument.
-
-    0.7655,-74.8918|0.7755,-74.9918
-    becomes:
-    [[0.7655, -74.8918], [0.7755, -74.9918]]
+    Configures flask routes.
 
     Args:
-        arg: Geolocation to split.
-    Returns:
-        Split geolocation.
+        app: Flask app to configure routes for.
+        keys: Secret API keys for various services.
     """
-    arg = arg.split("|")
-    arg = [i.split(",") for i in arg]
-    return arg
 
+    @app.route('/')
+    def info():
+        return ("Pickemup Flask Server")
 
-def getDistanceMatrix(origins: str,
-                      destinations: str,
-                      arrivalTime: int) -> dict:
-    """
-    Retrieves distance matrix from Google Cloud API.
+    @app.route('/gmaps-matrix')
+    def gmaps_matrix():
+        """
+        Gmaps distance matrix from request.
+        """
+        print(f"{datetime.datetime.now()}, {request.remote_addr}, /gmaps-matrix")
+        print(request.form)
 
-    Google Cloud Distance Matrix Documentation:
-    https://developers.google.com/maps/documentation/distance-matrix/intro
+        distance_matrix = gmaps.get_distance_matrix(
+            origins=request.form["origins"],
+            destinations=request.form["destinations"],
+            arrival_time=request.form["arrival_time"],
+            api_key=keys['vrrp_google']
+        )
 
-    Args:
-        origins: Origins of distance matrix.
-        destinations: Destinations of distance matrix.
-        arrivalTime: Time in seconds since midnight January 1st 1970 (UNIX).
-    Returns:
-        Distance matrix result from Google API.
-    """
-    keys = readKeys()
-    origins = splitGeoArg(origins)
-    destinations = splitGeoArg(destinations)
+        return jsonify(distance_matrix)
 
-    gmaps = googlemaps.Client(key=keys['vrrp_google'])
-
-    distanceMatrix = gmaps.distance_matrix(origins, destinations,
-                                           arrival_time=arrivalTime)
-
-    return distanceMatrix
-
-
-@app.route('/gmaps-matrix')
-def gmapsMatrix():
-    """
-    Gmaps distance matrix from request.
-    """
-    print(f"{datetime.datetime.now()}, {request.remote_addr}, /gmaps-matrix")
-    print(request.form)
-
-    distanceMatrix = getDistanceMatrix(request.form["origins"],
-                                       request.form["destinations"],
-                                       request.form["arrival_time"])
-
-    return jsonify(distanceMatrix)
 
 @app.route('/')
 def info():
     return ("<h1>Pickemup Flask Server</h1>")
 
 if __name__ == '__main__':
+    keys = read_keys()
+    configure_routes(app, keys)
     app.run(host='0.0.0.0', debug=True, port=80)
