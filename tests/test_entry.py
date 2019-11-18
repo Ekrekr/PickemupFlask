@@ -13,5 +13,5 @@ def test_base_route(flask_client):
     url = '/'
 
     response = flask_client.get(url)
-    assert response.get_data() == b'Pickemup Flask Server'
+    assert response.get_data() == b"Pickemup Flask Server"
     assert response.status_code == 200

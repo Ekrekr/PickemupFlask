@@ -11,8 +11,6 @@ from flask import Flask, request, jsonify
 
 from . import gmaps
 
-app = Flask(__name__)
-
 
 def read_keys() -> dict:
     """
@@ -46,11 +44,11 @@ def configure_routes(app, keys):
         keys: Secret API keys for various services.
     """
 
-    @app.route('/')
+    @app.route("/")
     def info():
         return ("Pickemup Flask Server")
 
-    @app.route('/gmaps-matrix')
+    @app.route("/gmaps-matrix")
     def gmaps_matrix():
         """
         Gmaps distance matrix from request.
@@ -67,12 +65,8 @@ def configure_routes(app, keys):
 
         return jsonify(distance_matrix)
 
+    return app
 
-@app.route('/')
-def info():
-    return ("<h1>Pickemup Flask Server</h1>")
-
-if __name__ == '__main__':
-    keys = read_keys()
-    configure_routes(app, keys)
-    app.run(host='0.0.0.0', debug=True, port=80)
+app = Flask(__name__)
+keys = read_keys()
+app = configure_routes(app, keys)
