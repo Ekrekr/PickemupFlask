@@ -105,3 +105,6 @@ venv.bak/
 
 # Sneaky keys
 *.keys
+
+# System files
+.DS_Store

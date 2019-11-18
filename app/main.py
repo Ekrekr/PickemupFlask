@@ -1,8 +1,8 @@
 """
-Blog Server
+Pickemup Flask
 
-App for relaying anonymous client requests to a cloud service. More info here:
-https://eliaskassell.com/2019/10/13/microservice-api-relay.html
+Flask server for a journey planner for passenger pickup, where organizing the
+rides is pre-planned by an orchestrator.
 """
 import json
 import typing
@@ -96,9 +96,7 @@ def gmapsMatrix():
 
 @app.route('/')
 def info():
-    return (f"<h1>Relay point for <a href='https://eliaskassell.com'>eliaskass"
-            f"ell.com</a>.</h1>")
+    return ("<h1>Pickemup Flask Server</h1>")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=80)
-
