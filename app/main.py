@@ -18,7 +18,7 @@ def read_keys() -> dict:
 
     Example .keys file:
     {
-        "vrrp_google": "ABCDEFGHI-JKLMNOPQRST-UVWXYZ0123-456789"
+        "google": "ABCDEFGHI-JKLMNOPQRST-UVWXYZ0123-456789"
     }
 
     Returns:
@@ -44,26 +44,23 @@ def configure_routes(app, keys):
         keys: Secret API keys for various services.
     """
 
+    @staticmethod
     @app.route("/")
     def info():
         return ("Pickemup Flask Server")
 
-    @app.route("/gmaps-matrix")
-    def gmaps_matrix():
+    @staticmethod
+    @app.route("/solve-routing")
+    def solve_routing():
         """
-        Gmaps distance matrix from request.
+        Solves solution request, responds with a solution response.
         """
-        print(f"{datetime.datetime.now()}, {request.remote_addr}, /gmaps-matrix")
-        print(request.form)
+        print(f"{datetime.datetime.now()}, /solution-request")
+        solution_request = json.loads(request.data)
 
-        distance_matrix = gmaps.get_distance_matrix(
-            origins=request.form["origins"],
-            destinations=request.form["destinations"],
-            arrival_time=request.form["arrival_time"],
-            api_key=keys['vrrp_google']
-        )
+        solution_response = {}
 
-        return jsonify(distance_matrix)
+        return jsonify(solution_response)
 
     return app
 
