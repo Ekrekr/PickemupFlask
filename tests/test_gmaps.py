@@ -1,7 +1,7 @@
 """
-Pickemup Flask - conftest.
+Pickemup Flask - Test Gmaps.
 
-Test all gmaps calls work as expected.
+Test gmaps work as expected.
 """
 import pytest
 from flask import Flask

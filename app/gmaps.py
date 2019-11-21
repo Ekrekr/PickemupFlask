@@ -6,6 +6,7 @@ Communication with the gmaps API, which includes distance-matrix.
 import typing
 import googlemaps
 
+
 def split_geo_arg(arg: str) -> typing.List[typing.List[float]]:
     """
     Splits up a geolocation argument.
@@ -16,6 +17,7 @@ def split_geo_arg(arg: str) -> typing.List[typing.List[float]]:
 
     Args:
         arg: Geolocation to split.
+
     Returns:
         Split geolocation.
     """
@@ -24,9 +26,9 @@ def split_geo_arg(arg: str) -> typing.List[typing.List[float]]:
     return arg
 
 
-def get_distance_matrix(data: dict,
+def get_distance_matrix(solution_request: dict,
                         api_key: str,
-                        arrival: bool=True) -> dict:
+                        arrival: bool = True) -> dict:
     """
     Retrieves distance matrix from Google Cloud API.
 
@@ -34,22 +36,23 @@ def get_distance_matrix(data: dict,
     https://developers.google.com/maps/documentation/distance-matrix/intro
 
     Args:
-        data: Raw solution request.
+        solution_request: Raw solution request.
         api_key: Google API key.
         arrival: Uses arrival time if true, otherwise departure as arrival.
+
     Returns:
         Distance matrix result from Google API.
     """
     gmaps_client = googlemaps.Client(key=api_key)
 
-    locations = [(loc["lat"], loc["lgn"]) for loc in data["locations"]]
+    locations = [(l["lat"], l["lgn"]) for l in solution_request["locations"]]
 
     distance_matrix = gmaps_client.distance_matrix(
         origins=locations,
         destinations=locations,
         mode="driving",
         units="metric",
-        # arrival_time=data["arrival-time"]
+        # arrival_time=solution_request["arrival-time"]
     )
 
     return distance_matrix

@@ -10,6 +10,12 @@ from flask import Flask
 from app.main import configure_routes, read_keys
 
 
+def read_json(path):
+    with open(path) as f:
+        ret = json.load(f)
+    return ret
+
+
 @pytest.fixture()
 def google_key():
     keys = read_keys()
@@ -26,6 +32,9 @@ def flask_client():
 
 @pytest.fixture()
 def solution_request_1():
-    with open("tests/assets/solution-request-1.json") as f:
-        ret = json.load(f)
-    return ret
+    return read_json("tests/assets/solution_request_1.json")
+
+
+@ pytest.fixture()
+def distance_matrix_response_1():
+    return read_json("tests/assets/distance_matrix_response_1.json")
