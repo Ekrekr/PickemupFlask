@@ -21,6 +21,7 @@ class RouteOptimizer:
         self.solution_request = solution_request
         self.distance_matrix = distance_matrix
 
+        self._people = self.solution_request["people"]
         self._location_names = self.distance_matrix["destination_addresses"]
         self._dm = self._calculate_matrix()
         self._demands = self._calculate_demands()
@@ -32,6 +33,7 @@ class RouteOptimizer:
         self._ends = [self.solution_request["destination"] for i in starts]
 
         self._manager, self._routing, self._solution = self._solve()
+        self._parsed_solution = self._parse()
 
     def _calculate_matrix(self):
         """
@@ -93,6 +95,12 @@ class RouteOptimizer:
         For more explanation see OR-Tools routing example:
         https://developers.google.com/optimization/routing/cvrp.
         """
+        # If prior class variables are missing then this function is not
+        # viable.
+        if not self._starts:
+            raise NameError(f"route_optimizer._solve called before class"
+                            f"variables initialized.")
+
         manager = pywrapcp.RoutingIndexManager(
             len(self._dm),
             self._num_vehicles,
@@ -141,6 +149,42 @@ class RouteOptimizer:
         self._routing = routing
         return manager, routing, solution
 
+    def _parse(self):
+        """
+        Parses the solution into a dict for serialized json transmittance.
+        """
+        # Parsing is only viable if a solution exists to be parsed.
+        if not self._starts:
+            raise NameError(f"route_optimizer._parse called before solution"
+                            f"found.")
+
+        manager = self._manager
+        routing = self._routing
+        solution = self._solution
+        parsed_solution = {"routes": {}}
+        total_distance = 0
+        total_load = 0
+        for vehicle_id in range(self._num_vehicles):
+            route = []
+            index = routing.Start(vehicle_id)
+            route_distance = 0
+            route_load = 0
+            
+            while not routing.IsEnd(index):
+                node_index = manager.IndexToNode(index)
+                route_load += self._demands[node_index]
+                previous_index = index
+                index = solution.Value(routing.NextVar(index))
+                distance = routing.GetArcCostForVehicle(previous_index, index, vehicle_id)
+                route_distance += distance
+                route.append({"node": node_index, "load": route_load, "cum_dist": route_distance})
+            route.append({"node": manager.IndexToNode(index), "load": route_load, "cum_dist": route_distance})
+            total_distance += route_distance
+            total_load += route_load
+        parsed_solution["total_distance"] = total_distance
+        parsed_solution["total_load"] = total_load
+        return parsed_solution
+
     def print_formulation(self):
         """
         Prints problem presented to optimiser to terminal.
@@ -156,6 +200,7 @@ class RouteOptimizer:
                   f"Lat: {loc['lat']}, lgn: {loc['lgn']}, "
                   f"name: {address}, "
                   f"demand: {self._demands[i_loc]}")
+        print(f"Total demand: {sum(self._demands)}")
         
         print("\nVehicles and drivers:")
         for i, driver_id in enumerate(self._driver_ids):
@@ -169,35 +214,21 @@ class RouteOptimizer:
 
     def print_solution(self):
         """
-        Prints solution to terminal.
+        Prints optimised solution to terminal.
         """
-        manager = self._manager
-        routing = self._routing
-        solution = self._solution
-        total_distance = 0
-        total_load = 0
-        for vehicle_id in range(self._num_vehicles):
-            index = routing.Start(vehicle_id)
-            plan_output = "Route for vehicle {}:\n".format(vehicle_id)
-            route_distance = 0
-            route_load = 0
-            while not routing.IsEnd(index):
-                node_index = manager.IndexToNode(index)
-                route_load += self._demands[node_index]
-                plan_output += " {0} Load({1}) -> ".format(node_index, route_load)
-                previous_index = index
-                index = solution.Value(routing.NextVar(index))
-                route_distance += routing.GetArcCostForVehicle(
-                    previous_index, index, vehicle_id)
-            plan_output += " {0} Load({1})\n".format(manager.IndexToNode(index),
-                                                    route_load)
-            plan_output += "Distance of the route: {}m\n".format(route_distance)
-            plan_output += "Load of the route: {}\n".format(route_load)
-            print(plan_output)
-            total_distance += route_distance
-            total_load += route_load
-        print("Total distance of all routes: {}m".format(total_distance))
-        print("Total load of all routes: {}".format(total_load))
+        print("PARSED SOLUTION")
+        routes = self._parsed_solution["routes"]
+        output = f"There are {len(routes)} vehicles.\n"
+        for driver_id, route in routes.items():
+            output += f"Route for {self._people[driver_id]['name']}'s vehicle: "
+            for stop in route:
+                output += f"{stop['node']} load({stop['load']}) -> "
+            output = output[:-4] + f", total distance: {stop['cum_dist']}\n"
+        print(output)
+
+    @property
+    def parsed_solution(self):
+        return self._parsed_solution
 
     @property
     def solution(self):
